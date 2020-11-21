@@ -1,0 +1,18 @@
+{
+  "name": "adam_net",
+  "version": "1.0.0",
+  "description": "Service to run automations in my Minecraft world",
+  "main": "server.js",
+  "repository": "git@github.com:adamtowerz/adam_net.git",
+  "author": "Adam Towers <adam.towers77@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "start": "npm run start:dev",
+    "start:dev": "ENV=development nodemon server",
+    "start:prod": "ENV=production nodemon server"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "nodemon": "^2.0.6"
+  }
+}
