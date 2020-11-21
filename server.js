@@ -13,15 +13,27 @@ let queue = [];
 const scripts = {
   "blood altar: on": {
     color: "red",
-    name: "blood altar: on",
+    name: "blood_altar: on",
     rpc:
       "rednet.send(rednet.lookup('adam_net', 'blood_altar'), \"redstone.setOutput('back', true)\", 'adam_net')",
   },
   "blood altar: off": {
     color: "red",
-    name: "blood altar: off",
+    name: "blood_altar: off",
     rpc:
       "rednet.send(rednet.lookup('adam_net', 'blood_altar'), \"redstone.setOutput('back', false)\", 'adam_net')",
+  },
+  "mob_spawner: off": {
+    color: "red",
+    name: "mob_spawner: off",
+    rpc:
+      "rednet.send(rednet.lookup('adam_net', 'mob_spawner'), \"redstone.setOutput('top', true)\nredstone.setOutput('bottom', true)\", 'adam_net')",
+  },
+  "mob_spawner: on": {
+    color: "red",
+    name: "mob_spawner: off",
+    rpc:
+      "rednet.send(rednet.lookup('adam_net', 'mob_spawner'), \"redstone.setOutput('top', false)\nredstone.setOutput('bottom', false)\", 'adam_net')",
   },
 };
 
