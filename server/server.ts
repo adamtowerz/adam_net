@@ -1,14 +1,14 @@
-let express = require("express");
-let path = require("path");
+import express from 'express'
+import path from 'path'
 
 const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "client", "build")));
 const isDev = process.env.ENV === "development";
-console.log("Starting adam_net (dev:", isDev, ")");
+console.info(`Starting adam_net (dev: ${isDev})`);
 const port = isDev ? 3000 : 80;
 
-let queue = [];
+const queue: string[] = [];
 
 const scripts = {
   "blood altar: on": {
@@ -52,14 +52,13 @@ app.get("/pop", (req, res) => {
 });
 
 app.post("/push", (req, res) => {
-  console.log("Got rpc call from client");
+  console.info(`Got rpc call from client - ${req.body.rpc}`);
   queue.push(req.body.rpc);
-  console.log(req.body.rpc);
   res.sendStatus(200);
 });
 
 app.get("/", function (req, res) {
-  res.sendFile(path.join(__dirname, "client", "build", "index.html"));
+  res.sendFile(path.join(__dirname, "..", "client", "build", "index.html"));
 });
 
 app.listen(port, () => {
