@@ -37,4 +37,24 @@ declare namespace turtle {
      * @returns success
      */
     function turnRight(): boolean;
+
+    /**
+     * Try to dig
+     * @returns success
+     */
+    function dig(): boolean;
+
+    /**
+     * Try to dig up
+     * @returns success
+     */
+    function digUp(): boolean;
+
+    /**
+     * Try to dig down
+     * @returns success
+     */
+    function digDown(): boolean;
+
+    function getFuelLevel(): number | "unlimited";
 }
