@@ -1,7 +1,99 @@
 --[[ Generated with https://github.com/TypeScriptToLua/TypeScriptToLua ]]
+require("lualib_bundle");
 local ____exports = {}
+local json, ws, err, preemptCheck, mineXbyX, messageQueue
+function preemptCheck(self)
+    ws.send(
+        json.encode({type = "preempt-check"})
+    )
+    while true do
+        local data = ws.receive()
+        local message = json.decode(data)
+        if message.type == "preempt-yes" then
+            return true
+        elseif message.type == "preempt-no" then
+            return false
+        else
+            __TS__ArrayPush(messageQueue, message)
+        end
+    end
+end
+function mineXbyX(x, y, z)
+    if y == nil then
+        y = x
+    end
+    if z == nil then
+        z = x
+    end
+    print(
+        "beginning space clear XxX protocol: " .. tostring(x)
+    )
+    ws.send(
+        json.encode({type = "setReadyState", state = "WORKING"})
+    )
+    do
+        local ____try = pcall(
+            function()
+                local function dig2HighForXForward(x)
+                    turtle.digDown()
+                    do
+                        local tf = 0
+                        while tf < x do
+                            turtle.dig()
+                            turtle.forward()
+                            turtle.digDown()
+                            tf = tf + 1
+                        end
+                    end
+                    if preemptCheck(nil) then
+                        error(
+                            __TS__New(Error, "preempted"),
+                            0
+                        )
+                    end
+                end
+                do
+                    local td = 0
+                    while td < z do
+                        if td ~= 0 then
+                            turtle.down()
+                            turtle.digDown()
+                            turtle.down()
+                            turtle.turnRight()
+                        end
+                        do
+                            local tl = 0
+                            while tl < y do
+                                if tl ~= 0 then
+                                    if (tl % 2) == 0 then
+                                        turtle.turnLeft()
+                                        dig2HighForXForward(1)
+                                        turtle.turnLeft()
+                                    else
+                                        turtle.turnRight()
+                                        dig2HighForXForward(1)
+                                        turtle.turnRight()
+                                    end
+                                end
+                                dig2HighForXForward(x - 1)
+                                tl = tl + 1
+                            end
+                        end
+                        td = td + 2
+                    end
+                end
+                ws.send(
+                    json.encode({type = "setReadyState", state = "READY"})
+                )
+            end
+        )
+        if not ____try then
+            print("Was preempted")
+        end
+    end
+end
 print("hello world!")
-local json = require("json")
+json = require("json")
 local FIRMWARE_VERSION = 1
 local CONTROLLER_HOST = "104.196.254.210"
 local FIRMWARE_ENDPOINT = "/firmware"
@@ -57,7 +149,7 @@ do
     end
 end
 print("Firmware check completed, initializing WS handshake")
-local ws, err = http.websocket(("ws://" .. CONTROLLER_HOST) .. ":5757")
+ws, err = http.websocket(("ws://" .. CONTROLLER_HOST) .. ":5757")
 if err then
     error("Failed to connect to socket")
 end
@@ -70,22 +162,37 @@ ws.send(
     )
 )
 local function runUntrustedSource(self, src)
-    local f = {
-        loadstring(src)
+    local f, err = loadstring(src)
+    if f == nil then
+        return {false, err}
+    end
+    local env = getfenv()
+    env.mineXbyX = mineXbyX
+    env.preemptCheck = preemptCheck
+    setfenv(f, env)
+    return {
+        pcall(f)
     }
-    return pcall(f)
 end
+messageQueue = {}
+local activeNonce = nil
 while true do
-    local message = ws.receive()
+    local message
+    if #messageQueue > 0 then
+        message = table.remove(messageQueue)
+    else
+        local data = ws.receive()
+        message = json.decode(data)
+    end
     if message == nil then
         break
     end
-    local obj = json.decode(message)
-    if obj.type == "naming" then
+    activeNonce = message.nonce
+    if message.type == "naming" then
         print(
-            "recieved name: " .. tostring(obj.name)
+            "recieved name: " .. tostring(message.name)
         )
-        os.setComputerLabel(obj.name)
+        os.setComputerLabel(message.name)
         ws.send(
             json.encode(
                 {
@@ -95,15 +202,29 @@ while true do
                 }
             )
         )
-    elseif obj.type == "ping" then
+    elseif message.type == "ping" then
         print("ping pong")
         ws.send(
             json.encode({type = "pong"})
         )
-    elseif obj.type == "script" then
-        print("Running script from the cloud")
-        runUntrustedSource(nil, obj.script)
+    elseif message.type == "rsrc" then
+        local res, err = unpack(
+            runUntrustedSource(nil, message.src)
+        )
+        if not res then
+            print("src failed:", err)
+            ws.send(
+                json.encode({type = "rsrc-err", err = err, nonce = activeNonce})
+            )
+        else
+            ws.send(
+                json.encode({type = "rsrc-res", res = res, nonce = activeNonce})
+            )
+        end
+    else
+        print("Unknown message of type ", message.type)
     end
+    activeNonce = nil
 end
 if ws then
     ws:close()

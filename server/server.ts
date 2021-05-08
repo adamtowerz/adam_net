@@ -9,7 +9,7 @@ const isDev = process.env.ENV === "development";
 console.info(`Starting adam_net (dev: ${isDev})`);
 const port = 80;
 
-getTurtleManager();
+const turtleManager = getTurtleManager();
 
 // Serve the FE
 app.get("/", function (req, res) {
@@ -36,6 +36,32 @@ app.get("/firmwareVersion", function (req, res) {
     version: 1
   });
 });
+
+app.get("/fleetStatus", function (req, res) {
+  res.send(turtleManager.getFleetStatus())
+})
+
+app.post("/sendTurtleMessage", function (req, res) {
+  const { turtle, message } = req.body;
+  const result = turtleManager.sendMessageToTurtle(turtle, message);
+
+  if (result) {
+    res.send({
+      success: result,
+    })
+  }
+})
+
+app.post("/preemptTurtle", function (req, res) {
+  const { turtle } = req.body;
+  const result = turtleManager.preemptTurtle(turtle);
+
+  if (result) {
+    res.send({
+      success: result,
+    })
+  }
+})
 
 app.listen(port, () => {
   console.log(`adam_net listening on port ${port}`);

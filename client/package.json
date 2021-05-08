@@ -11,7 +11,7 @@
     "react-scripts": "4.0.0",
     "web-vitals": "^0.2.4"
   },
-  "proxy": "http://localhost:3000",
+  "proxy": "http://localhost:80",
   "scripts": {
     "start": "PORT=3001 react-scripts start",
     "build": "react-scripts build",

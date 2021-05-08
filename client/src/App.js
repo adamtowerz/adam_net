@@ -1,6 +1,6 @@
 import "./App.css";
 
-import Scripts from "./Scripts";
+import Fleet from "./Fleet";
 
 function App() {
   return (
@@ -12,12 +12,8 @@ function App() {
       </header>
       <main>
         <section>
-          <h2>State</h2>
-          <p>coming soon.. maybe</p>
-        </section>
-        <section>
-          <h2>Scripts</h2>
-          <Scripts />
+          <h2>Fleet</h2>
+          <Fleet />
         </section>
       </main>
       <footer>
